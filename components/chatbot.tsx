@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +22,7 @@ export function Chatbot() {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
 
   const sendMessage = async () => {
     if (!input.trim()) return
@@ -33,21 +33,46 @@ export function Chatbot() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/chat", {
+      // אם אין עדיין sessionToken – ניצור אחד חדש
+      let token = sessionToken
+      if (!token) {
+        const sessionRes = await fetch("https://www.askyourdatabase.com/api/chatbot/v2/session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer 88f91a2ff8b732b09497655dfbc80731c0fa065e6ad418aeb3d9982a240081f5",
+          },
+          body: JSON.stringify({
+            chatbotid: "705f6441b90021d65031fbf144a2d4da",
+            name: "Web User",
+            email: "user@example.com",
+          }),
+        })
+
+        const sessionData = await sessionRes.json()
+        token = sessionData.session_token
+        setSessionToken(token)
+      }
+
+      // שליחת הודעה
+      const response = await fetch("https://www.askyourdatabase.com/api/chatbot/v2/message", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          messages: [...messages, { role: "user", content: userMessage }],
+          message: userMessage,
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to send message")
+      if (!response.ok) throw new Error("Failed to get response")
 
       const data = await response.json()
-      setMessages((prev) => [...prev, { role: "assistant", content: data.message }])
+
+      setMessages((prev) => [...prev, { role: "assistant", content: data.response }])
     } catch (error) {
+      console.error("Chat error:", error)
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Sorry, I encountered an error. Please try again." },
