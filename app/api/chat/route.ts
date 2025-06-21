@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         question: userQuestion,
         chatbotid: CHATBOT_ID,
-        returnAll: false,
+        returnAll: true,
       }),
     });
 

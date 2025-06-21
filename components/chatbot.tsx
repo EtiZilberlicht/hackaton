@@ -50,27 +50,29 @@ export function Chatbot() {
           { role: "assistant", content: data.aiResponse || "Sorry, no response." },
         ])
       } else if (data.data && data.data.length > 0) {
-        const row = data.data[0]
         let friendlyText = ""
 
-        if ("author" in row && "commit_count" in row) {
+        if ("author" in data.data[0] && "commit_count" in data.data[0]) {
+          // אם זה המקרה של עובד עם הכי הרבה קומיטים, תוכל להשאיר כמו שזה
+          const row = data.data[0]
           friendlyText = `The employee who made the most commits is ${row.author} with ${row.commit_count} commits.`
         } else {
-          friendlyText = Object.entries(row)
-            .map(([key, value]) => `${key.replace(/_/g, " ")}: ${value}`)
-            .join(", ")
+          // אחרת, עבור על כל הפריטים וצרף מחרוזת ארוכה עם כל הנתונים
+          friendlyText = data.data
+            .map((row: Record<string, any>) =>
+              Object.entries(row)
+                .map(([key, value]) => `${key.replace(/_/g, " ")}: ${value}`)
+                .join(", ")
+            )
+            .join("\n") // כל עובד בשורה חדשה
         }
 
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: friendlyText },
         ])
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.aiResponse || "Query executed successfully." },
-        ])
       }
+
     } catch (err) {
       console.error("Chat error:", err)
       setMessages((prev) => [
@@ -100,21 +102,27 @@ export function Chatbot() {
       </Button>
 
       {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-[400px] h-[600px] shadow-xl z-40 flex flex-col">
+        <Card
+          className="fixed bottom-24 right-6 w-[400px] h-[600px] shadow-xl z-40 flex flex-col"
+          style={{ maxHeight: "600px" }}
+        >
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center">
               <MessageCircle className="h-5 w-5 mr-2 text-indigo-600" />
               InsightBot Assistant
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0">
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <CardContent className="flex flex-col flex-1 p-0" style={{ minHeight: 0 }}>
+            {/* Messages container with fixed height and scroll */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ minHeight: 0 }}>
               {messages.map((message, index) => (
-                <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={index}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                      message.role === "user" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-800"
-                    }`}
+                    className={`max-w-[80%] p-3 rounded-lg text-sm ${message.role === "user" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {message.content}
                   </div>
@@ -128,7 +136,8 @@ export function Chatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t">
+            {/* Input fixed height, no shrink */}
+            <div className="p-4 border-t flex-shrink-0">
               <div className="flex space-x-2">
                 <Input
                   value={input}
