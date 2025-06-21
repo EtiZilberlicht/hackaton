@@ -234,55 +234,65 @@ export default function Workers() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {data?.allUsers
-                .slice() // יוצרים עותק כדי לא לשנות את המקור
-                .sort((a, b) => {
-                  const firstNameA = a.user_id.split(' ')[0].toLowerCase();
-                  const firstNameB = b.user_id.split(' ')[0].toLowerCase();
-                  return firstNameA.localeCompare(firstNameB);
-                })
-                .map((user) => (
-                  <Card
-                    key={user.user_id}
-                    className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200"
-                    onClick={() => handleUserClick(user.user_id)}
-                  >
-                    <CardContent className="p-4 text-center">
-                      <Avatar className="h-16 w-16 mx-auto mb-3">
-                        <img
-                          src="/user.png"
-                          alt="Anonymous user"
-                          className="h-16 w-16 rounded-full object-cover"
-                        />
-                      </Avatar>
-                      <h3 className="font-semibold text-gray-900 truncate">{user.user_id}</h3>
-                      <p className="text-sm text-gray-600 mt-1">Worker</p>
-                      <div className="mt-3 flex justify-center space-x-4 text-xs text-gray-500">
-                        <span>
-                          {data?.commitsByUser.find((u) => u.user_id === user.user_id)?.commits || 0}{" "}
-                          commits
-                        </span>
-                        <span>
-                          {data?.alertsByUser.find((u) => u.user_id === user.user_id)?.alert_count || 0}{" "}
-                          alerts
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              {(() => {
+                const seenUserIds = new Set<string>()
 
-              {/* User Modal */}
-              <UserModal
-                userId={selectedUser}
-                isOpen={modalOpen}
-                onClose={() => {
-                  setModalOpen(false)
-                  setSelectedUser(null)
-                }}
-              />
+                return data?.allUsers
+                  .slice() // עותק של המערך המקורי
+                  .sort((a, b) => {
+                    const firstNameA = a.user_id.split(" ")[0].toLowerCase()
+                    const firstNameB = b.user_id.split(" ")[0].toLowerCase()
+                    return firstNameA.localeCompare(firstNameB)
+                  })
+                  .filter((user) => {
+                    if (seenUserIds.has(user.user_id)) {
+                      return false
+                    } else {
+                      seenUserIds.add(user.user_id)
+                      return true
+                    }
+                  })
+                  .map((user) => (
+                    <Card
+                      key={user.user_id}
+                      className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200"
+                      onClick={() => handleUserClick(user.user_id)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <Avatar className="h-16 w-16 mx-auto mb-3">
+                          <img
+                            src="/user.png"
+                            alt="Anonymous user"
+                            className="h-16 w-16 rounded-full object-cover"
+                          />
+                        </Avatar>
+                        <h3 className="font-semibold text-gray-900 truncate">{user.user_id}</h3>
+                        <p className="text-sm text-gray-600 mt-1">Worker</p>
+                        <div className="mt-3 flex justify-center space-x-4 text-xs text-gray-500">
+                          <span>
+                            {data?.commitsByUser.find((u) => u.user_id === user.user_id)?.commits || 0} commits
+                          </span>
+                          <span>
+                            {data?.alertsByUser.find((u) => u.user_id === user.user_id)?.alert_count || 0} alerts
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+              })()}
             </div>
           </CardContent>
         </Card>
+
+        {/* User Modal */}
+        <UserModal
+          userId={selectedUser}
+          isOpen={modalOpen}
+          onClose={() => {
+            setModalOpen(false)
+            setSelectedUser(null)
+          }}
+        />
       </div>
     </Layout>
   )
