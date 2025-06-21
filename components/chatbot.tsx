@@ -100,7 +100,7 @@ export function Chatbot() {
       </Button>
 
       {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-80 h-96 shadow-xl z-40 flex flex-col">
+        <Card className="fixed bottom-24 right-6 w-[400px] h-[600px] shadow-xl z-40 flex flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center">
               <MessageCircle className="h-5 w-5 mr-2 text-indigo-600" />
