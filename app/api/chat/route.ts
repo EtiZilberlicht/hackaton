@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const userQuestion = body.question;
 
     const API_KEY = process.env.ASKYOURDB_API_KEY;
-    const CHATBOT_ID = "756b526c4331bce012116ce4bb1acc9d";
+    const CHATBOT_ID = process.env.CHATBOT_ID;
 
     if (!API_KEY) {
       throw new Error("ASKYOURDB_API_KEY environment variable is not set");
